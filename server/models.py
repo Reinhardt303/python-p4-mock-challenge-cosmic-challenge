@@ -27,8 +27,9 @@ class Planet(db.Model, SerializerMixin):
 
     missions = db.relationship("Mission", back_populates="planet", cascade="all, delete-orphan")
     scientists = association_proxy("missions", "scientist")
+
     
-    serialize_rules = ("-missions.planet", "-scientists.planet", "scientitsts.missions")
+    serialize_rules = ("-missions.planet", "-missions.scientist.missions")
 
 
 class Scientist(db.Model, SerializerMixin):
@@ -41,7 +42,7 @@ class Scientist(db.Model, SerializerMixin):
     missions = db.relationship("Mission", back_populates="scientist", cascade="delete")
     planets = association_proxy("missions", "planet")
 
-    serialize_rules = ("-missions.scientists", "-planets.missions", "planets.scientists")
+    serialize_rules = ("-missions.scientist", "-missions.planet.missions")
 
     @validates("name", "field_of_study")
     def validate_field(self, key, value):
@@ -61,7 +62,7 @@ class Mission(db.Model, SerializerMixin):
     planet = db.relationship("Planet", back_populates="missions")
     scientist = db.relationship("Scientist", back_populates="missions")
 
-    serialize_rules = ("-planet.missions", "scientist.missions")
+    serialize_rules = ("-planet.missions", "-scientist.missions")
     
     @validates("name", "scientist_id", "planet_id")
     def validate_field(self, key, value):
